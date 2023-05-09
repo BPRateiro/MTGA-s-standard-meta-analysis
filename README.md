@@ -22,8 +22,6 @@ The scope of this project is to analyze game data from Untapped, answering some 
 ### Milestones
 
 - [ ] Untapped.gg crawler
-- [ ] Data analysis
 - [ ] Data pipeline
+- [ ] Data analysis
 - [ ] Dashboard
-
-Estimated date for completion: 04-21-2023
