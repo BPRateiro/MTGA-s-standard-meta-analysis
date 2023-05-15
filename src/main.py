@@ -1,16 +1,17 @@
 import os
 
 from sqlalchemy_utils import database_exists, create_database
-from sqlalchemy import create_engine, update
+from sqlalchemy import create_engine, update, select
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
 
-import pandas as pd
-
-from models import Set, drop_all, create_all
+from models import Set, AnalyticsWins, drop_all, create_all
+from analytics import get_analytics
 from card import get_card_information
 from raw import request_active
+
+import pandas as pd
 
 
 def start_engine():
@@ -76,6 +77,41 @@ def write_card(connection):
         print(f"Table '{card_df.name}' had {affected} new inclusions")
 
 
+def write_analytics(session, format):
+    analytics_wins, analytics_games = get_analytics(format)
+
+    # Write 'analytics_wins' DataFrame to the 'AnalyticsWins' table
+    tablename = 'analytics_wins'
+    affected = analytics_wins.to_sql(tablename,
+                                     con=session.get_bind(),
+                                     if_exists='append',
+                                     index_label='card_id')
+    print(f"Table '{tablename}' had {affected} new inclusions")
+
+    # Retrieve records written on the previous step
+    latest = session.query(func.max(AnalyticsWins.created_on)).scalar()
+    query = (session.query(AnalyticsWins)
+                    .filter(AnalyticsWins.created_on == latest))
+    latest_records = pd.read_sql(query.statement, con=session.get_bind())
+
+    # Merge the query result with 'analytics_games'
+    merged_df = pd.merge(latest_records,
+                         analytics_games,
+                         on=['card_id', 'tier'])
+
+    # Rename column 'id' to 'wins_id' in the merged DataFrame
+    merged_df.rename(columns={'id': 'wins_id'}, inplace=True)
+
+    # Write the relevant columns to 'AnalyticsGames' table
+    tablename = 'analytics_games'
+    columns = ['wins_id', 'copies', 'games']
+    affected = merged_df[columns].to_sql(tablename,
+                                         con=session.get_bind(),
+                                         if_exists='append',
+                                         index=False)
+    print(f"Table '{tablename}' had {affected} new inclusions")
+
+
 if __name__ == '__main__':
     engine = start_engine()  # Create engine
     garantee_database(engine)  # Make sure 'untapped' db exists
@@ -87,14 +123,18 @@ if __name__ == '__main__':
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        # Write data
+        # Write existing sets
         format, new_sets = write_set(session)
         print(f'The current format is {format}')
 
+        # Include cards if there are new sets to include
         if new_sets:
             print(f'The following sets were included: {new_sets}')
             write_card(connection)
         else:
             print(f'No new sets were included')
+
+        # Write analytics
+        write_analytics(session, format)
 
         session.commit()

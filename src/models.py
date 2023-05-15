@@ -11,7 +11,7 @@ class Set(Base):
 
     id = Column(String(3), primary_key=True)
     created_on = Column(DateTime, server_default=func.now())
-    rotated_on = Column(DateTime)
+    rotated_on = Column(DateTime, server_default=None, nullable=True)
 
     cards = relationship('Card', backref='set')
 
@@ -34,9 +34,10 @@ class Card(Base):
     created_on = Column(DateTime, server_default=func.now())
 
     types = relationship('CardType', backref='card')
-    # subtypes = relationship('CardSubtype', backref='card')
-    # costs = relationship('CardCost', backref='card')
-    # abilities = relationship('CardAbility', backref='card')
+    subtypes = relationship('CardSubtype', backref='card')
+    costs = relationship('CardCost', backref='card')
+    abilities = relationship('CardAbility', backref='card')
+    wins = relationship('AnalyticsWins', backref='card')
 
 
 class CardType(Base):
@@ -73,6 +74,28 @@ class CardAbility(Base):
     id = Column(Integer, primary_key=True)
     card_id = Column(Integer, ForeignKey('card.id'))
     ability = Column(Text)
+    created_on = Column(DateTime, server_default=func.now())
+
+
+class AnalyticsWins(Base):
+    __tablename__ = 'analytics_wins'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    card_id = Column(Integer, ForeignKey('card.id'), nullable=False)
+    tier = Column(String(10))
+    wins = Column(Integer)
+    created_on = Column(DateTime, server_default=func.now())
+
+    games = relationship('AnalyticsGames', backref='wins')
+
+
+class AnalyticsGames(Base):
+    __tablename__ = 'analytics_games'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    wins_id = Column(Integer, ForeignKey('analytics_wins.id'), nullable=False)
+    copies = Column(Integer)
+    games = Column(Integer)
     created_on = Column(DateTime, server_default=func.now())
 
 
