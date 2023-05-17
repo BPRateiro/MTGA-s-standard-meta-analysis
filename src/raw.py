@@ -47,7 +47,7 @@ HEADERS = {
 
 @lru_cache
 def request(keyword, send_headers=True, format=''):
-    'Returns JSON from the corresponding keyword'
+    """Returns JSON from the corresponding keyword"""
     url_kw, endpoint = ENDPOINTS[keyword]
     url = URLS[url_kw]
 
@@ -68,7 +68,7 @@ def request(keyword, send_headers=True, format=''):
 
 
 def request_active():
-    'Returns format ID and lists of standard legal sets'
+    """Returns format ID and lists of standard legal sets"""
 
     # Extracting information from the latest standard BO1 format
     for format in reversed(request('active')):
@@ -77,7 +77,7 @@ def request_active():
 
 
 def request_cards(sets):
-    'Returns raw card data frame'
+    """Returns raw card data frame"""
     df = pd.DataFrame(request('cards'))
 
     # Ony bother with standard legal cards
@@ -91,14 +91,14 @@ def request_cards(sets):
 
 
 def request_analytics(format):
-    'Returns raw analytics data frame'
+    """Returns raw analytics data frame"""
     json = request('analytics', False, format)
 
     return pd.json_normalize(json['data']).T
 
 
 def request_text():
-    'Returns raw card text data frame'
+    """Returns raw card text data frame"""
     df = pd.DataFrame(request('text')).set_index('id')
 
     # Collapse columns raw and text, prioritizing raw

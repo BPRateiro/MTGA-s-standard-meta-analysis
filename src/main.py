@@ -6,7 +6,7 @@ from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
 
-from models import Set, AnalyticsWins, drop_all, create_all
+from models import Set, AnalyticsWins, create_all
 from analytics import get_analytics
 from card import get_card_information
 from raw import request_active
@@ -14,7 +14,7 @@ from raw import request_active
 import pandas as pd
 
 
-def start_engine():
+def get_engine():
     """Creates engine from URL, using environment variables"""
     url = URL.create(
         drivername="mysql+pymysql",
@@ -34,7 +34,7 @@ def garantee_database(eng):
 
 
 def write_set(session):
-    "Write set table"
+    """Write set table"""
     # Get currently legal sets according to the website
     format, active_sets = request_active()
 
@@ -113,11 +113,10 @@ def write_analytics(session, format):
 
 
 if __name__ == '__main__':
-    engine = start_engine()  # Create engine
+    engine = get_engine()  # Create engine
     garantee_database(engine)  # Make sure 'untapped' db exists
 
     with engine.connect() as connection:
-        # drop_all(engine)  # For testing only
         create_all(engine)
 
         Session = sessionmaker(bind=engine)

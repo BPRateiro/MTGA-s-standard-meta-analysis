@@ -40,7 +40,7 @@ def filter_raw_card(raw_card):
 
 
 def get_card_dataframe(df, raw_text):
-    "Returns card dataframe"
+    """Returns card dataframe"""
 
     # Card columns mappable to text
     id_to_text = ['titleId', 'flavorId', 'cardTypeTextId', 'subtypeTextId']
@@ -89,7 +89,7 @@ def get_card_dataframe(df, raw_text):
 
 
 def get_card_type(df, raw_text):
-    'Returns card type data frame'
+    """Returns card type data frame"""
     # Convert 'cardTypeTextId' to text
     df = df.join(df.cardTypeTextId
                    .map(lambda x: raw_text.loc[x].values[0],
@@ -108,7 +108,7 @@ def get_card_type(df, raw_text):
 
 
 def get_card_subtype(df, raw_text):
-    "Returns card subtype data frame"
+    """Returns card subtype data frame"""
     # Convert 'subtypeTextId' to text
     df = df.join(df.subtypeTextId
                    .map(lambda x: (raw_text.loc[x]
@@ -124,7 +124,7 @@ def get_card_subtype(df, raw_text):
 
 
 def get_card_cost(df):
-    "Returns card cost data frame"
+    """Returns card cost data frame"""
     # Casting color codes in 'castingcost' column
     casting_colors = {
         'Black': r'oB',
@@ -157,7 +157,7 @@ def get_card_cost(df):
 
 
 def get_card_ability(df, raw_text):
-    'Returns card_ability data frame'
+    """Returns card_ability data frame"""
     df = (df.ability
             .dropna()
             .explode()

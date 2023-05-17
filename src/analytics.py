@@ -3,6 +3,7 @@ from raw import request_analytics
 
 
 def filter_raw_analytics(raw_analytics):
+    """Unnest the 'raw_analytics' columns and makes tier names more explicit"""
     # Reset index and rename tiers
     df = (raw_analytics.reset_index()
                        .rename(columns={'index': 'raw'}))
@@ -34,7 +35,7 @@ def filter_raw_analytics(raw_analytics):
 
 
 def get_analytics_games(df):
-    "Returns data frame 'analytics_games'"
+    """Returns data frame 'analytics_games'"""
     # Unnest copies
     unnest = [1, 2, 3, 4]
     df[unnest] = pd.DataFrame(df.copies.to_list(), index=df.index)
@@ -51,7 +52,7 @@ def get_analytics_games(df):
 
 
 def get_analytics(format_id):
-    "Returns both 'analytics_games' and 'analytics_wins'"
+    """Returns both 'analytics_games' and 'analytics_wins'"""
     filtered = filter_raw_analytics(request_analytics(format_id))
 
     analytics_wins = filtered[['tier', 'wins']]
