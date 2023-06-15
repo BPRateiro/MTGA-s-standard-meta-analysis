@@ -22,9 +22,9 @@ def get_engine():
     """Creates engine from URL, using environment variables"""
     url = URL.create(
         drivername="mysql+pymysql",
+        host=os.getenv("MYSQL_HOST"),
         username=os.getenv("MYSQL_USER"),
         password=os.getenv("MYSQL_PASSWORD"),
-        host=os.getenv("MYSQL_HOST"),
         database=os.getenv("MYSQL_DATABASE"),
     )
     return create_engine(url)

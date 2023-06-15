@@ -1,0 +1,14 @@
+version: '3.8'
+
+name: untapped_scrapper_dev
+
+services:
+  untapped:
+    container_name: scrapper-container-dev
+    image: scrapper-image-dev
+    build:
+      context: .
+    env_file:
+      - .env.staging
+    volumes:
+      - ./:/src
