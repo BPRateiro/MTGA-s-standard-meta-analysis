@@ -1,0 +1,36 @@
+version: '3.8'
+
+name: untapped_scrapper
+
+services:
+  untapped:
+    container_name: scrapper-container
+    image: scrapper-image
+    build:
+      context: .
+    env_file:
+      - .env.local
+    volumes:
+      - ./:/src
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  mysql-db:
+    container_name: database-container
+    image: mysql:8.0
+    cap_add:
+      - SYS_NICE
+    env_file:
+      - .env.local
+    ports:
+      - ${MYSQL_PORT}:3306
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  db:
