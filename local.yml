@@ -9,7 +9,7 @@ services:
     build:
       context: .
     env_file:
-      - .env.local
+      - .env
     volumes:
       - ./:/src
     depends_on:
@@ -22,7 +22,7 @@ services:
     cap_add:
       - SYS_NICE
     env_file:
-      - .env.local
+      - .env
     ports:
       - ${MYSQL_PORT}:3306
     volumes:
