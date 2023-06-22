@@ -8,6 +8,8 @@ from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
 
+from time import sleep
+
 import pandas as pd
 
 from models import Set, AnalyticsWins, create_all
@@ -88,6 +90,8 @@ def write_analytics(session, format_id):
         tablename, con=session.get_bind(), if_exists="append", index_label="card_id"
     )
     print(f"Table '{tablename}' had {affected} new inclusions")
+
+    sleep(10)  # Garantee that database is ready to be queried
 
     # Retrieve records written on the previous step
     latest = session.query(func.max(AnalyticsWins.created_on)).scalar()
