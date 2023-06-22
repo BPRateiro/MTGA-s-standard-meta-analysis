@@ -1,7 +1,6 @@
 """Controls order of writing to the database operation"""
 
 import os
-from time import sleep
 
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy import create_engine, update
@@ -90,7 +89,7 @@ def write_analytics(session, format_id):
     )
     print(f"Table '{tablename}' had {affected} new inclusions")
 
-    sleep(2)  # Garantee that database is ready to be queried
+    session.commit()  # Garantee that database is ready to be queried
 
     # Retrieve records written on the previous step
     latest = session.query(func.max(AnalyticsWins.created_on)).scalar()
