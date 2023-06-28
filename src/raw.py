@@ -95,10 +95,13 @@ def request_cards(sets):
 
 
 def request_analytics(format_id):
-    """Returns raw analytics data frame"""
+    """Returns distinct games data frame and raw analytics data frame"""
     json = request("analytics", False, format_id)
 
-    return pd.json_normalize(json["data"]).T
+    distinct = pd.json_normalize(json["metadata"]["games"]).T
+    raw_analytics = pd.json_normalize(json["data"]).T
+
+    return distinct, raw_analytics
 
 
 def request_text():
@@ -116,6 +119,8 @@ if __name__ == "__main__":
     f_id, legal_sets = request_active()
     print(f_id, legal_sets)
 
-    print("\n", request_cards(legal_sets))
-    print("\n", request_analytics(f_id))
-    print("\n", request_text())
+    print("\n", request_cards(legal_sets).head())
+    distinct_games, raw_analitycs_df = request_analytics(f_id)
+    print("\n", distinct_games.head())
+    print("\n", raw_analitycs_df.head())
+    print("\n", request_text().head())
