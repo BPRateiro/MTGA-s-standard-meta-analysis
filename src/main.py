@@ -10,7 +10,7 @@ from sqlalchemy.sql import func
 
 import pandas as pd
 
-from models import Set, AnalyticsWins, create_all
+from models import Set, AnalyticsGames, DistinctGames, create_all
 from analytics import get_analytics
 from card import get_card_information
 from raw import request_active
@@ -78,37 +78,68 @@ def write_card(connection):
         print(f"Table '{card_df.name}' had {affected} new inclusions")
 
 
-def write_analytics(session, format_id):
-    """Writes both analytics related dataframes to database"""
-    analytics_wins, analytics_games = get_analytics(format_id)
-
-    # Write 'analytics_wins' DataFrame to the 'AnalyticsWins' table
-    tablename = "analytics_wins"
-    affected = analytics_wins.to_sql(
-        tablename, con=session.get_bind(), if_exists="append", index_label="card_id"
+def write_dataframe(session, tablename, dataframe, index=False, index_label=None):
+    """Write generic analytics dataframe"""
+    affected = dataframe.to_sql(
+        tablename,
+        con=session.get_bind(),
+        if_exists="append",
+        index=index,
+        index_label=index_label,
     )
+    session.commit()  # Garantee that database is ready to be queried
     print(f"Table '{tablename}' had {affected} new inclusions")
 
-    session.commit()  # Garantee that database is ready to be queried
 
-    # Retrieve records written on the previous step
-    latest = session.query(func.max(AnalyticsWins.created_on)).scalar()
-    query = session.query(AnalyticsWins).filter(AnalyticsWins.created_on == latest)
-    latest_records = pd.read_sql(query.statement, con=session.get_bind())
+def retrieve_latest(session, table):
+    """Retrieve records written on the previous step"""
+    latest = session.query(func.max(table.created_on)).scalar()
+    query = session.query(table).filter(table.created_on == latest)
+    return pd.read_sql(query.statement, con=session.get_bind())
 
-    # Merge the query result with 'analytics_games'
-    merged_df = pd.merge(latest_records, analytics_games, on=["card_id", "tier"])
+
+def merge_dataframe(left, right, merging_columns, renamed):
+    """Merge generic dataframes"""
+    merged = pd.merge(left, right, on=merging_columns)
 
     # Rename column 'id' to 'wins_id' in the merged DataFrame
-    merged_df.rename(columns={"id": "wins_id"}, inplace=True)
+    merged.rename(columns={"id": renamed}, inplace=True)
 
-    # Write the relevant columns to 'AnalyticsGames' table
-    tablename = "analytics_games"
-    columns = ["wins_id", "copies", "games"]
-    affected = merged_df[columns].to_sql(
-        tablename, con=session.get_bind(), if_exists="append", index=False
+    return merged.sort_values(merging_columns)
+
+
+def write_analytics(session, format_id):
+    """Writes both analytics related dataframes to database"""
+    distinct_games, analytics_games, analytics_distribution = get_analytics(format_id)
+
+    # Write 'distinct_games' DataFrame to the 'DistinctGames' table
+    write_dataframe(session, "distinct_games", distinct_games, True, "tier")
+
+    # Retrieve records written on the previous step
+    latest_records = retrieve_latest(session, DistinctGames)
+
+    # Merge the query result with 'analytics_distribution'
+    merged_df = merge_dataframe(
+        analytics_games.reset_index(), latest_records, ["tier"], "distinct_id"
     )
-    print(f"Table '{tablename}' had {affected} new inclusions")
+
+    # Write merged_df DataFrame to the 'AnalyticsGames' table
+    columns = ["card_id", "tier", "distinct_id", "games", "wins"]
+    write_dataframe(
+        session, "analytics_games", merged_df[columns].sort_values("card_id")
+    )
+
+    # Retrieve records written on the previous step
+    latest_records = retrieve_latest(session, AnalyticsGames)
+
+    # Merge the query result with 'analytics_distribution'
+    merged_df = merge_dataframe(
+        latest_records, analytics_distribution, ["card_id", "tier"], "games_id"
+    )
+
+    # Write the relevant columns to 'AnalyticsDistribution' table
+    columns = ["games_id", "copies", "played"]
+    write_dataframe(session, "analytics_distribution", merged_df[columns])
 
 
 if __name__ == "__main__":

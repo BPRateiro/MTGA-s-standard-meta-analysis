@@ -44,7 +44,7 @@ class Card(Base):
     subtypes = relationship("CardSubtype", backref="card")
     costs = relationship("CardCost", backref="card")
     abilities = relationship("CardAbility", backref="card")
-    wins = relationship("AnalyticsWins", backref="card")
+    games = relationship("AnalyticsGames", backref="card")
 
 
 class CardType(Base):
@@ -92,18 +92,17 @@ class CardAbility(Base):
     created_on = Column(DateTime, server_default=func.now())
 
 
-class AnalyticsWins(Base):
-    """Analytics wins table"""
+class DistinctGames(Base):
+    """Distinct games table"""
 
-    __tablename__ = "analytics_wins"
+    __tablename__ = "distinct_games"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    card_id = Column(Integer, ForeignKey("card.id"), nullable=False)
+    id = Column(Integer, primary_key=True)
     tier = Column(String(10))
-    wins = Column(Integer)
+    total = Column(Integer)
     created_on = Column(DateTime, server_default=func.now())
 
-    games = relationship("AnalyticsGames", backref="wins")
+    an_games = relationship("AnalyticsGames", backref="distinct_games")
 
 
 class AnalyticsGames(Base):
@@ -112,9 +111,25 @@ class AnalyticsGames(Base):
     __tablename__ = "analytics_games"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    wins_id = Column(Integer, ForeignKey("analytics_wins.id"), nullable=False)
-    copies = Column(Integer)
+    card_id = Column(Integer, ForeignKey("card.id"), nullable=False)
+    tier = Column(String(10))
+    distinct_id = Column(Integer, ForeignKey("distinct_games.id"), nullable=False)
     games = Column(Integer)
+    wins = Column(Integer)
+    created_on = Column(DateTime, server_default=func.now())
+
+    a_distribution = relationship("AnalyticsDistribution", backref="analytics_games")
+
+
+class AnalyticsDistribution(Base):
+    """Analytics distribution table"""
+
+    __tablename__ = "analytics_distribution"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    games_id = Column(Integer, ForeignKey("analytics_games.id"), nullable=False)
+    copies = Column(Integer)
+    played = Column(Integer)
     created_on = Column(DateTime, server_default=func.now())
 
 
