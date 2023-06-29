@@ -87,8 +87,8 @@ def request_cards(sets):
     # Ony bother with standard legal cards
     raw_card = raw_card[raw_card.set.isin(sets)]
 
-    # Remove duplicates by considering only the latest reprint
-    latest_reprint = raw_card.groupby("titleId").agg({"grpid": "max"})
+    # Remove duplicates by considering only the vanilla reprint
+    latest_reprint = raw_card.groupby("titleId").agg({"grpid": "min"})
     raw_card = raw_card[raw_card.grpid.isin(latest_reprint.grpid)]
 
     return raw_card.set_index("grpid")
