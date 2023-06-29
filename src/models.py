@@ -27,7 +27,7 @@ class Card(Base):
     __tablename__ = "card"
 
     id = Column(Integer, primary_key=True)
-    art_id = Column(Integer)
+    art_link = Column(String(100), nullable=False, unique=True)
     set_id = Column(String(3), ForeignKey("set.id"))
     title = Column(String(100), nullable=False, unique=True)
     rarity = Column(Text)
