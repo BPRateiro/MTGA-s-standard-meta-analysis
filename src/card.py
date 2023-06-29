@@ -14,7 +14,7 @@ def filter_raw_card(raw_card):
 
     keep = [
         "titleId",
-        "art_id",
+        "grpid",
         "flavorId",
         "power",
         "toughness",
@@ -34,7 +34,6 @@ def filter_raw_card(raw_card):
         "isSecondaryCard": "is_secondary_card",
         "isToken": "is_token",
         "IsRebalanced": "is_rebalanced",
-        "artId": "art_id",
         "abilities": "ability",
     }
 
@@ -69,10 +68,19 @@ def get_card_dataframe(filtered_df, raw_text):
     boolean_columns = ["is_token", "is_secondary_card", "is_rebalanced"]
     filtered_df[boolean_columns] = filtered_df[boolean_columns].fillna(False)
 
+    # Generate art link from set and grpid
+    filtered_df["art_link"] = (
+        "https://mtgajson.untapped.gg/art/full_grpid/en/512/"
+        + filtered_df.set_id.str.lower()
+        + "/"
+        + filtered_df.grpid.astype(str)
+        + ".webp"
+    )
+
     # Define the columns and order for card data frame
     order = [
         "titleId",
-        "art_id",
+        "art_link",
         "set_id",
         "title",
         "rarity",
