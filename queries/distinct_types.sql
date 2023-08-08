@@ -1,0 +1,3 @@
+SELECT DISTINCT type
+FROM card_type
+ORDER BY type ASC

@@ -1,0 +1,13 @@
+version: "3.9"
+
+name: untapped_dashboard
+
+services:
+  metabase:
+    image: metabase/metabase:latest
+    container_name: local_metabase
+    ports:
+      - "3000:3000"
+    volumes:
+      - "./metabase.db:/metabase.db"
+    restart: always
